@@ -1,19 +1,20 @@
-国际跳棋（毛哥规则版本）
+draughts（毛哥规则版本）
 =
-该项目是个人项目，学生需要独立完成。学生需要使用C语言实现一个“国际跳棋”走子程序（以下称为大脑程序），使用stdin来接收对手落子情况，通过计算后使用stdout输出自己的落子（见输入输出格式）。算法不限，但有时间和内存上的限制（见比赛规则）
+The project is a personal project and students need to work independently.Students need to use C language to implement a "checkers" subroutine (hereinafter referred to as the brain program), using stdin to receive the opponent drop situation, after calculation, using stdout to output their own drop (see input output format).Algorithms are unlimited, but there are time and memory limitations (see game rules).
 
-算法核心
+
+Core algorithm
 -
 
-#### 第一部分：搜索函数
-&emsp;&emsp;采用了两种搜索函数，第一个是ab，第二个是pvs搜索，主变量导向搜索，是alpha-beta pruning的一个变种， ，它首先假设之前已经找到最佳估值（其值为alpha），然后应用零窗口搜索，以便快速判别此假设的正确性：如果零窗口搜索的结果是value≤alpha，那么表明之前的假设是正确的，即这步棋不会有更好的估值，程序将直接舍弃这步棋。在这种情况下，搜索时间将大大缩短。<br>
-&emsp;&emsp;但是如果零窗口搜索的结果表明之前的假设是错误的，那么还需要重新进行一次常规窗口的搜索。在这种情况下，PVS算法实际上多进行了一次搜索。但由于零窗口搜索耗时相对先使用alphabeta搜索进行首层着法排序，搜索深度为5，然后再使用pvs，搜索深度为14<br>
-&emsp;&emsp;若想要pvs搜索效果明显好于ab,就应该在估值函数上下功夫，在不同的情况下(如开局，最终，25-35步等等)采用不同的估值函数<br>
+#### Part 1: Search functions
+&emsp;&emsp;Adopted two kinds of search function, the first is ab, the second is the PVS search, the main variable direction search, is a variant of alpha, beta pruning, and before it first assumption is to find the best value (the value of alpha), search, and then apply zero window for quick judging the correctness of this hypothesis: if zero window search result is the value of alpha, or less then before the hypothesis is correct, that this move will not have a better valuation, the program will abandon this move directly.In this case, the search time will be greatly reduced.<br>
+&emsp;&emsp;But if the null window search results show that the previous assumption is wrong, then a regular window search needs to be repeated.In this case, the PVS algorithm actually performs one more search.However, due to the time consuming of zero-window search, alphabeta search was used for the first layer ranking with a search depth of 5, followed by PVS with a search depth of 14<br>
+&emsp;&emsp;If you want PVS to search significantly better than ab, you should work on the valuation function, using different valuation functions <br> in different situations (e.g., opening, final, 25-35 steps, etc.)
 
-#### 第二部分：哈希表
-&emsp;&emsp;使用哈希表来增加我搜索的速度<br>
-&emsp;&emsp;第一个是实现哈希表。在棋局开始的时候，建立一个三维数组   然后，将此数组中填满随机数。若要求某一局面的哈希值，则将棋盘上所有棋子在数组 Z 中对应的随机数相加。（若要得到 32 位哈希值，数组 Z 中元素应为 32 位；要得到 64 位哈希值，数组 Z 中元素应为 64 位。）<br>
-&emsp;&emsp;对要搜索的每一节点， 计算出它的一个32位哈希值（一个 32 位数对哈希表大小取模）以确定此局面在哈希表中的位置。 计算另一个64 位哈希值（ Checksum ）来校验表中的数据项是否是所要的那一项
-(Zobrist 方法可以用增量式计算的方法解决，无须每次都加总所有棋子。当搜索一个新节点时只要棋子在移动前将对应的随机数从哈希值中减去，再加上该棋子在移动后对应的随机数就可以算出了该子节点的哈希值。）<br>
-&emsp;&emsp;而在棋类游戏中，每步棋之间的局面变化一般不大，因此可以使用更高效的增量法来计算哈希值。 将计算哈希值的过程放进 MakeMove/UnmakeMove 的过程当中。<br>
-&emsp;&emsp;计算哈希值的加减过程也可以用（ 按位）异或操作替代。<br>
+#### Part 2: Hash tables
+&emsp;&emsp;Use hash table to increase the speed of my search <br>
+&emsp;&emsp;The first is to implement a hash table.At the beginning of the game, create a 3d array and then fill the array with random numbers.If the hash value of a situation is required, the random numbers corresponding to all the pieces on the board in the array Z are added.(To get a 32-bit hash, the elements in the array Z should be 32 bits;To get a 64-bit hash, the elements in the array Z should be 64-bit.<br>
+&emsp;&emsp;For each node to be searched, a 32-bit hash value (a 32-bit modulus for the hash table size) is calculated to determine the position of the situation in the hash table.Compute another 64-bit hash value (Checksum) to verify that the item in the table is the desired item
+The Zobrist method can be solved by incremental calculation, without adding up all the pieces at each time.When searching for a new node, the hash value of the child node can be calculated by subtracting the corresponding random number from the hash value before the pawn moves and adding the corresponding random number after the pawn moves.)<br>
+&emsp;&emsp;Board games, on the other hand, generally do not change much from move to move, so a more efficient increment method can be used to calculate the hash.Put the hash into the MakeMove/UnmakeMove process.<br>
+&emsp;&emsp;The process of adding and subtracting a hash value can also be replaced by (bitwise) xor operations.<br>
